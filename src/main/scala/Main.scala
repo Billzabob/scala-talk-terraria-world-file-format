@@ -15,9 +15,7 @@ import scodec.Attempt.Successful
     .pipe(codec.decode)
 
   val Successful(DecodeResult(parsed, rest)) = result
-  println(parsed._2.length)
-  println(parsed._2.reverse.take(10).map(_._2))
-  println(parsed._1.positions)
+  println(parsed(2))
 
 def codec =
   header
@@ -27,7 +25,7 @@ def codec =
         header.positions(2) - header.positions(1),
         list(WorldTiles.tile(header.importance))
       )
-    )
+    ) :+ Chests.chests
 
 def header =
   version ::
