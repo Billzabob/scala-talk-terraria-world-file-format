@@ -1,6 +1,4 @@
-import scodec.Codec
 import scodec.codecs.*
-import scodec.Err
 
 case class Item(stackSize: Int, netDefaults: Int, prefix: Int)
 
