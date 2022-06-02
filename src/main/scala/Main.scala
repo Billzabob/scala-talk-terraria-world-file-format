@@ -13,4 +13,6 @@ import scodec.bits.BitVector
     .pipe(TerrariaMap.codec.decode)
 
   val Successful(DecodeResult(parsed, rest)) = result
-  println(parsed.signs)
+  println("Encoding")
+  val Successful(b) = TerrariaMap.codec.encode(parsed)
+  println("Done")

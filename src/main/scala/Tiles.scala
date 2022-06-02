@@ -1,5 +1,6 @@
 import scodec.codecs.*
 import scodec.Err
+import scodec.Codec
 
 case class Tile(
     flags: Flags,
@@ -57,15 +58,18 @@ object Tiles:
     val tileTypeAndFrames = tileType(flags.flags1.isActive, flags.flags1.typeHasExtraByte).flatZip(frames(important))
 
     val conditionals =
-      conditional(flags.flags3.fold(false)(_.tileHasColorByte), tileColor) ::
-        conditional(flags.flags1.hasWallByte, tileWall) ::
-        conditional(flags.flags3.fold(false)(_.tileHasWallColorByte), wallColor) ::
+      conditionalOpt(flags.flags3, _.tileHasColorByte, tileColor) ::
+        conditional (flags.flags1.hasWallByte, tileWall) ::
+        conditionalOpt(flags.flags3, _.tileHasWallColorByte, wallColor) ::
         conditional(flags.flags1.liquidType != 0, tileLiquid) ::
-        conditional(flags.flags3.fold(false)(_.tileHasExtraWallByte), tileWallExtraByte)
+        conditionalOpt(flags.flags3, _.tileHasExtraWallByte, tileWallExtraByte)
 
     tileTypeAndFrames ++ conditionals :+ numberOfDuplicateTiles(flags.flags1.sizeOfRepeatTileCount)
   )
   .as[Tile]
+
+  def conditionalOpt[A, C](option: Option[A], f: A => Boolean, codec: Codec[C]) =
+    conditional(option.fold(false)(f), codec)
 
   def flags =
     val flagsTuple = flags1.as[Flags1] :: optional(bool, flags2.as[Flags2] :: optional(bool, flags3.as[Flags3]))
@@ -82,7 +86,8 @@ object Tiles:
     tileType match {
       case Some(tileType) =>
         conditional(important(tileType), (uint16L :: uint16L).as[Frames])
-      case None => provide(None)
+      case None =>
+        provide(None)
     }
 
   def tileColor = uint8L
