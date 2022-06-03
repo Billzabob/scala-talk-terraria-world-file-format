@@ -1,6 +1,7 @@
+import scala.util.chaining.given
+import scodec.Codec
 import scodec.codecs.*
 import scodec.Err
-import scodec.Codec
 
 case class Tile(
     flags: Flags,
@@ -10,8 +11,7 @@ case class Tile(
     wall: Option[Int],
     wallColor: Option[Int],
     liquid: Option[Int],
-    wallExtraByte: Option[Int],
-    duplicateTiles: Int
+    wallExtraByte: Option[Int]
 )
 
 case class Frames(x: Int, y: Int)
@@ -51,25 +51,36 @@ object Tiles:
   def tiles(header: Header) = 
     fixedSizeBytes(
       header.positions(2) - header.positions(1),
-      list(Tiles.tile(header.importance))
+      Tiles.tile(header.importance)
+        .pipe(list)
+        .pipe(runLineEncoding(header.maxTilesY))
+        .pipe(toVector)
     )
+  
+  def runLineEncoding(groupSize: Int)(codec: Codec[List[(Tile, Int)]]) =
+    codec.xmap(encoded => Util.runLineDecode(encoded).grouped(groupSize).toList, _.map(Util.runLineEncode).flatten)
+
+  def toVector[A](codec: Codec[List[List[A]]]) =
+    codec.xmap(_.map(_.toVector).toVector, _.map(_.toList).toList)
 
   def tile(important: List[Boolean]) = flags.flatPrepend(flags =>
     val tileTypeAndFrames = tileType(flags.flags1.isActive, flags.flags1.typeHasExtraByte).flatZip(frames(important))
 
-    val conditionals =
-      conditionalOpt(flags.flags3, _.tileHasColorByte, tileColor) ::
-        conditional (flags.flags1.hasWallByte, tileWall) ::
-        conditionalOpt(flags.flags3, _.tileHasWallColorByte, wallColor) ::
-        conditional(flags.flags1.liquidType != 0, tileLiquid) ::
-        conditionalOpt(flags.flags3, _.tileHasExtraWallByte, tileWallExtraByte)
+    val hasColorByte = flags.flags3.fold(false)(_.tileHasColorByte)
+    val hasWallColorByte = flags.flags3.fold(false)(_.tileHasWallColorByte)
+    val hasExtraWallByte = flags.flags3.fold(false)(_.tileHasExtraWallByte)
 
-    tileTypeAndFrames ++ conditionals :+ numberOfDuplicateTiles(flags.flags1.sizeOfRepeatTileCount)
+    val conditionals =
+      conditional(hasColorByte, tileColor) ::
+        conditional(flags.flags1.hasWallByte, tileWall) ::
+        conditional(hasWallColorByte, wallColor) ::
+        conditional(flags.flags1.liquidType != 0, tileLiquid) ::
+        conditional(hasExtraWallByte, tileWallExtraByte)
+
+    tileTypeAndFrames ++ conditionals
   )
   .as[Tile]
-
-  def conditionalOpt[A, C](option: Option[A], f: A => Boolean, codec: Codec[C]) =
-    conditional(option.fold(false)(f), codec)
+  .flatZip(tile => numberOfDuplicateTiles(tile.flags.flags1.sizeOfRepeatTileCount))
 
   def flags =
     val flagsTuple = flags1.as[Flags1] :: optional(bool, flags2.as[Flags2] :: optional(bool, flags3.as[Flags3]))

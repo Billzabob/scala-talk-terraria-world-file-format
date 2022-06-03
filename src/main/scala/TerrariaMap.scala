@@ -1,7 +1,8 @@
 import scodec.bits.ByteVector
+
 case class TerrariaMap(
   header: Header,
-  tiles: List[Tile],
+  tiles: Vector[Vector[Tile]],
   chests: List[Chest],
   signs: List[Sign],
   npcs: List[NPC],

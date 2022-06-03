@@ -1,5 +1,6 @@
 import java.util.UUID
 import scodec.codecs.*
+import scodec.bits.BitVector
 
 object Header:
   def header = headerCodec.as[Header]
@@ -156,7 +157,7 @@ object Header:
   def revision = int32L
   def isFavorite = bool(64)
   def positions = listOfN(int16L, int32L)
-  def importance = byteAligned(listOfN(int16L, bool).xmap(reverseBits, reverseBits))
+  def importance = listOfN(int16L, bool).xmap(reverseBits, reverseBits) <~ ignore(6) <~ bool.unit(true)
   def worldName = string
   def seed = string
   def worldGenVersion = int64L
@@ -295,7 +296,7 @@ object Header:
   def downedDeerclops = flag
 
   def string = variableSizeBytes(uint8L, ascii)
-  def flag = bool(8)
+  def flag = ignore(7) ~> bool
   def reverseBits[A](list: List[A]) = list.grouped(8).flatMap(_.reverse).toList
 
 case class Header(

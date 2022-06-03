@@ -8,8 +8,7 @@ lazy val root = project
 
     scalaVersion := scala3Version,
 
-    libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
     libraryDependencies += "org.scodec" %% "scodec-core" % "2.1.0",
     libraryDependencies += "org.scodec" %% "scodec-bits" % "1.1.31",
-    // libraryDependencies += "org.typelevel" %% "cats-core" % "2.7.0"
+    libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test,
   )
