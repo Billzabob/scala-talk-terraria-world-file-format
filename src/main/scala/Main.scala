@@ -10,14 +10,11 @@ import scodec.bits.BitVector
     .pipe(p => Paths.get(p))
     .pipe(readAllBytes)
     .pipe(BitVector.apply)
-    .pipe(TerrariaMap.codec.decode)
+    .pipe(TerrariaMap.codec.decodeValue)
 
-  val Successful(DecodeResult(parsed, rest)) = result
+  val Successful(parsed) = result
   println("Encoding")
   val Successful(b) = TerrariaMap.codec.encode(parsed)
   println("Done")
-  println(parsed.npcs)
-  println(parsed.activeNPCs)
-  println(parsed.tileEntities)
-  println(parsed.pressurePlates)
-  println(parsed.townManager)
+  println(parsed.header.worldName)
+  println(parsed.footer)

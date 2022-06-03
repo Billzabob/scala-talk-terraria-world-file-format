@@ -1,3 +1,4 @@
+import scodec.bits.ByteVector
 case class TerrariaMap(
   header: Header,
   tiles: List[Tile],
@@ -7,7 +8,10 @@ case class TerrariaMap(
   activeNPCs: List[ActiveNPC],
   tileEntities: List[TileEntity],
   pressurePlates: List[PressurePlate],
-  townManager: List[TownManager]
+  townManager: List[TownManager],
+  bestiary: Bestiary,
+  creativePowers: ByteVector,
+  footer: Footer
 )
 
 object TerrariaMap:
@@ -23,6 +27,6 @@ object TerrariaMap:
       :+ TileEntities.tileEntities
       :+ PressurePlates.pressurePlates
       :+ TownManager.townManager
-      // :+ Bestiary.bestiary
-      // :+ CreativePowers.creativePowers
-      // :+ Footer.footer
+      :+ Bestiary.bestiary
+      :+ CreativePowers.creativePowers
+      :+ Footer.footer
