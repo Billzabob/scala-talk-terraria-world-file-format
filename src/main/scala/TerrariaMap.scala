@@ -23,3 +23,6 @@ object TerrariaMap:
       :+ TileEntities.tileEntities
       :+ PressurePlates.pressurePlates
       :+ TownManager.townManager
+      // :+ Bestiary.bestiary
+      // :+ CreativePowers.creativePowers
+      // :+ Footer.footer

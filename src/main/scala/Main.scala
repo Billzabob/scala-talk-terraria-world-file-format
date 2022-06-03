@@ -16,3 +16,8 @@ import scodec.bits.BitVector
   println("Encoding")
   val Successful(b) = TerrariaMap.codec.encode(parsed)
   println("Done")
+  println(parsed.npcs)
+  println(parsed.activeNPCs)
+  println(parsed.tileEntities)
+  println(parsed.pressurePlates)
+  println(parsed.townManager)

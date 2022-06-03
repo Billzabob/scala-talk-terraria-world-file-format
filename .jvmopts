@@ -1,3 +1,4 @@
--Xms1g
--Xmx4g
+-XX:+UseG1GC
+-Xms8g
+-Xmx8g
 

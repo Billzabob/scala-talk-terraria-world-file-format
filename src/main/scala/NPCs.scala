@@ -10,7 +10,7 @@ case class NPC(
     position: Position,
     homeless: Boolean,
     homePosition: HomePosition,
-    townNPC: Long
+    townNPC: Option[Long]
 )
 
 case class ActiveNPC(
@@ -39,6 +39,9 @@ object NPCs:
   def position = (floatL :: floatL).as[Position]
   def homeless = boolean
   def homePosition = (uint32L :: uint32L).as[HomePosition]
-  def townNPC = uint32L
+  def townNPC = uint8L.consume(bit => conditional(bit > 0, uint32L)) {
+    case Some(_) => 1
+    case None    => 0
+  }
 
   def boolean = ignore(7) ~> bool
