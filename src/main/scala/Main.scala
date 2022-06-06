@@ -9,10 +9,5 @@ import scodec.Attempt.Failure
   val bits = File.read
   val Successful(map) = TerrariaMap.codec.decodeValue(bits)
   println("Encoding")
-  // val num = 542_155
   val Successful(newBits) = TerrariaMap.codec.encode(map)
-  val same = newBits == bits
   File.write(newBits)
-  println(same)
-  println(bits.length)
-  println(newBits.length)

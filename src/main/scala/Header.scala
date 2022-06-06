@@ -3,9 +3,7 @@ import scodec.codecs.*
 import scodec.bits.BitVector
 
 object Header:
-  def header = headerCodec.as[Header]
-
-  def headerCodec =
+  def header =
     version ::
       relogic ~>
       fileType ::
@@ -304,7 +302,6 @@ case class Header(
   fileType: Int,
   revision: Int,
   isFavorite: Boolean,
-  positions: List[Int],
   importance: List[Boolean],
   worldName: String,
   seed: String,

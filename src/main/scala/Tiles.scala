@@ -75,14 +75,11 @@ case class Flags3(
 )
 
 object Tiles:
-  def tiles(header: Header) = 
-    fixedSizeBytes(
-      header.positions(2) - header.positions(1),
-      Tiles.tile(header.importance)
-        .pipe(list)
-        .pipe(runLineEncoding(header.maxTilesY))
-        .xmap(_.toVector, _.toList)
-    )
+  def tiles(importance: List[Boolean], maxTilesY: Int) = 
+    Tiles.tile(importance)
+      .pipe(list)
+      .pipe(runLineEncoding(maxTilesY))
+      .xmap(_.toVector, _.toList)
   
   def runLineEncoding(groupSize: Int)(codec: Codec[List[(Tile, Int)]]) =
     codec.xmap(encoded => Util.runLineDecode(encoded), _.grouped(groupSize).map(Util.runLineEncode).flatten.toList)
@@ -98,21 +95,20 @@ object Tiles:
         conditional(flags.flags3.tileHasWallColorByte, wallColor) ::
         conditional(flags.flags1.liquidType != 0, tileLiquid) ::
         conditional(flags.flags3.tileHasExtraWallByte, tileWallExtraByte)
-
-    val tileTuple =
-      tileTypeAndFrames ++
-        conditionals :+
-        provide(flags.flags1.liquidType) :+
-        provide(flags.flags2.tileSlope) :+
-        provide(flags.flags2.tileIsHalfBrick) :+
-        provide(flags.flags2.tileIsWire1) :+
-        provide(flags.flags2.tileIsWire2) :+
-        provide(flags.flags2.tileIsWire3) :+
-        provide(flags.flags3.tileIsWire4) :+
-        provide(flags.flags3.tileIsInActive) :+
+    
+    val providedFlags =
+      provide(flags.flags1.liquidType) ::
+        provide(flags.flags2.tileSlope) ::
+        provide(flags.flags2.tileIsHalfBrick) ::
+        provide(flags.flags2.tileIsWire1) ::
+        provide(flags.flags2.tileIsWire2) ::
+        provide(flags.flags2.tileIsWire3) ::
+        provide(flags.flags3.tileIsWire4) ::
+        provide(flags.flags3.tileIsInActive) ::
         provide(flags.flags3.tileIsActuator)
 
-    tileTuple.as[Tile] :: numberOfDuplicateTiles(flags.flags1.sizeOfRepeatTileCount)
+    (tileTypeAndFrames ++ conditionals ++ providedFlags).as[Tile] ::
+      numberOfDuplicateTiles(flags.flags1.sizeOfRepeatTileCount)
 
   def toFlags(tile: Tile, numberOfDuplicateTiles: Int) =
     Flags(
