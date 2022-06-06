@@ -2,14 +2,19 @@ import scodec.codecs.*
 
 case class Item(stackSize: Int, netDefaults: Int, prefix: Int)
 
-case class Chest(x: Long, y: Long, name: String, slots: List[Option[Item]])
+case class Chest(x: Long, y: Long, name: String, slots: List[Item])
 
 object Chests:
   val slotCount = 40
 
   def chests = listOfN(chestCount <~ chestSize.unit(slotCount), chest.as[Chest])
 
-  def chest = chestX :: chestY :: chestName :: listOfN(provide(slotCount), slot)
+  def chest = chestX :: chestY :: chestName :: slots
+
+  def slots = listOfN(provide(slotCount), slot).xmap(
+    slots => slots.collect { case Some(slot) => slot },
+    items => items.map(Some(_)) ++ List.fill(slotCount - items.length)(None)
+  )
 
   def slot = stackSize.consume(stackSize =>
     conditional(stackSize != 0, item(stackSize).as[Item])
